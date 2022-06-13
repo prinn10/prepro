@@ -6,15 +6,15 @@ from distutils.dir_util import copy_tree
 
 
 def image_path(dir_path): # 폴더 경로를 입력받아 폴더 내에 존재하는 이미지의 절대경로, 이미지 이름 list를 반환
-    image_full_path = [] # absoulute path
-    image_name_without_etx = [] # filename + etx
-    image_name = [] # only filename without etx
+    image_full_path_list = [] # absoulute path
+    image_name_list = [] # only filename without etx
+    image_name_without_etx_list = [] # filename + etx
     for fname in os.listdir(dir_path):
-        image_full_path.append(os.path.join(dir_path, fname))
-        image_name.append(fname)
-        image_name_without_etx.append(fname.rstrip('.bmp'))
+        image_full_path_list.append(os.path.join(dir_path, fname))
+        image_name_list.append(fname)
+        image_name_without_etx_list.append(fname.rstrip('.bmp'))
 
-    return image_full_path, image_name, image_name_without_etx
+    return image_full_path_list, image_name_list, image_name_without_etx_list
 
 def is_image(filename, verbose=False):
     data = open(filename,'rb').read(10)

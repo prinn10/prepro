@@ -188,6 +188,27 @@ def datasetInspection(dataset_path = 'D:\\Total_Dataset\\real_dataset'): # 확�
                 error += 1
         print('train data 총', len(train_full_path), '개 정상:', len(train_full_path) - error, ' 에러:', error)
 
+def dataset_rename():
+    dir_path = 'D:\\Total_Dataset\\Dataset\\temp_backup'
+    date_dir_list = ['211102_NG', '211102_OK', '211112_NG', '211112_OK', '2011028_NG', '2011028_OK']
+    part_dir_list = ['bell_mouth', 'sheath_barrel', 'wire_barrel']
+
+    for date_dir in date_dir_list:
+        for part_dir in part_dir_list:
+            target_path = os.path.join(dir_path, date_dir)
+            target_path = os.path.join(target_path, part_dir)
+            dst_name_list = []
+            image_full_path_list, image_name_list, image_name_without_etx_list = tools.image_path(target_path)
+            for image_name in image_name_list:
+                dst_name_list.append(os.path.join(target_path, (date_dir + '_' + image_name)))
+            src_name_list = image_full_path_list
+
+            for src_name, dst_name in zip(src_name_list, dst_name_list):
+                print('rename', src_name, dst_name)
+                rename(src_name, dst_name)
+
+def rename(src_name, dst_name):
+    os.rename(src_name, dst_name) # 둘 다 절대경로를 필요로 함
 
 # dir_name = '2011028_OK'
 #
@@ -202,8 +223,12 @@ def datasetInspection(dataset_path = 'D:\\Total_Dataset\\real_dataset'): # 확�
 #     tools.convertEtx('png', os.path.join(origin_path, image_name[i]), image_name_without_etx[i], 'D:\\Total_Dataset\\Dataset\\5. Segmentation_dataset\\Wire_front\\No_Augmentation\\png\\train')
 
 if __name__ == '__main__':
-    #test 파일 생성
-    image_full_path, image_name, image_name_without_etx = tools.image_path('D:\\Total_Dataset\\Dataset\\2. Crop Origin Image\\2011028_OK\\wire_barrel_front')
+    # #test 파일 생성
+    # image_full_path, image_name, image_name_without_etx = tools.image_path('D:\\Total_Dataset\\Dataset\\2. Crop Origin Image\\2011028_OK\\wire_barrel_front')
+    #
+    # for i in range(len(image_full_path)):
+    #     tools.convertEtx('tiff', image_full_path[i], image_name_without_etx[i], 'D:\\Total_Dataset\\Dataset\\6. Unlabeld_dataset')
 
-    for i in range(len(image_full_path)):
-        tools.convertEtx('tiff', image_full_path[i], image_name_without_etx[i], 'D:\\Total_Dataset\\Dataset\\6. Unlabeld_dataset')
+    # crop 이미지 이름 변경
+    dataset_rename()
+
