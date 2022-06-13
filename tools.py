@@ -1,7 +1,8 @@
 import os, cv2
 from PIL import Image
-
-import imageinformation
+# 파일 복사
+import shutil
+from distutils.dir_util import copy_tree
 
 
 def image_path(dir_path): # 폴더 경로를 입력받아 폴더 내에 존재하는 이미지의 절대경로, 이미지 이름 list를 반환
@@ -55,6 +56,16 @@ def convertEtx(dst_etx, image_full_path, image_name_without_etx, save_path='defa
         im.save(image_name_without_etx + '.' + etx1, etx2)
     else:
         im.save(os.path.join(save_path, image_name_without_etx +'.'+ etx1), etx2)
+
+def remove_file(img_ab_filename, msk_ab_filename = None): # outlier 제거 시 mask, image 함께 제거, unlabel일 경우 image만 제거
+    if msk_ab_filename:
+        os.remove(msk_ab_filename) # msk_filename 확장자 필요
+
+    os.remove(img_ab_filename) # img_filename 확장자 필요
+
+def create_copy_dataset(src_path, dst_path): # src_path를 dst_path로 복사
+    shutil.copytree(src_path, dst_path) # dst_path 존재하지않는 경우
+    # copy_tree("./test1", "./test2") # # dst_path 존재하는 경우
 
 if __name__ == '__main__':
     image_path()

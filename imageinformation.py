@@ -79,3 +79,19 @@ class ImageInformation():
 
     def saveImage(self, save_full_path_with_etx):
         cv2.imwrite(save_full_path_with_etx, self.image)
+
+
+    def printColorInformation(self):
+        reshape_image = self.image.reshape(self.image.shape[0] * self.image.shape[1], 3)
+        means = np.mean(reshape_image, axis=0)  # R G B 평균
+        variances = np.var(reshape_image, axis=0) # R G B 분산
+        stds = np.std(reshape_image, axis=0) # R G B 표준편차
+        # print('RGB 평균', means)
+        # print('RGB 분산', variances)
+        # print('RGB 표준편차', stds)
+        return means, variances, stds
+
+# MaskImageInfomation BaseImageInformation 상속받은 mask 전용 class
+# ImageInformation BaseImageInformation 상속받은 image 전용 class
+# SegImageInformation : segmentation data에 필요한 실질적 사용 class MaskImageInfomation, ImageInformation 상속받음
+
