@@ -5,6 +5,7 @@ import numpy as np # linear algebra
 
 import os, cv2
 import tools
+import shutil
 
 def createTwoMask(image_path, image_name_without_etx, save_path_png, save_path_tif):
     img = cv2.imread(image_path, cv2.IMREAD_COLOR)
@@ -188,11 +189,7 @@ def datasetInspection(dataset_path = 'D:\\Total_Dataset\\real_dataset'): # 확�
                 error += 1
         print('train data 총', len(train_full_path), '개 정상:', len(train_full_path) - error, ' 에러:', error)
 
-def dataset_rename():
-    dir_path = 'D:\\Total_Dataset\\Dataset\\temp_backup'
-    date_dir_list = ['211102_NG', '211102_OK', '211112_NG', '211112_OK', '2011028_NG', '2011028_OK']
-    part_dir_list = ['bell_mouth', 'sheath_barrel', 'wire_barrel']
-
+def dataset_rename(dir_path, date_dir_list, part_dir_list):
     for date_dir in date_dir_list:
         for part_dir in part_dir_list:
             target_path = os.path.join(dir_path, date_dir)
@@ -206,6 +203,128 @@ def dataset_rename():
             for src_name, dst_name in zip(src_name_list, dst_name_list):
                 print('rename', src_name, dst_name)
                 rename(src_name, dst_name)
+
+def create_mask_dataset(src_base_path, dst_base_path, date_dir_list, part_dir_list):
+    ori_base_path = 'D:\\Total_Dataset\\Dataset\\ori_temp'
+    for date_dir in date_dir_list:
+        for part_dir in part_dir_list:
+            labled_data_count = 0
+            ori_dir_path = os.path.join(ori_base_path, date_dir)
+            ori_dir_path = os.path.join(ori_dir_path, part_dir)
+            src_dir_path = os.path.join(src_base_path, date_dir)
+            src_dir_path = os.path.join(src_dir_path, part_dir)
+            dst_dir_path = os.path.join(dst_base_path, part_dir)
+
+            image_full_path_list, image_name_list, image_name_without_etx_list = tools.image_path(src_dir_path)
+            for i in range(len(image_full_path_list)):
+                if advanced_create_mask(image_full_path_list[i], os.path.join(dst_dir_path, ('train_lables' + '\\' + image_name_without_etx_list[i] + '.tif'))) == True: # lable 이미지 저장
+                    shutil.copy(os.path.join(ori_dir_path, image_name_list[i]), os.path.join(dst_dir_path, ('train' + '\\' + image_name_list[i]))) # origin img 이동
+                    labled_data_count += 1
+
+            print(part_dir,date_dir,'total:', len(image_full_path_list), 'labled_data:', labled_data_count)
+
+# def advanced_create_mask(image_full_path):
+#     # 1. Handmaking Image load
+#     img = cv2.imread(image_full_path, cv2.IMREAD_COLOR)
+#
+#     # 2. GT img Instance 생성, lable color를 제외한 모든 pixcel을 blob color로 변환
+#     lable_color_list = [[36, 28, 237], [0, 0, 255]]
+#     blob_color = [125, 125, 125]
+#     GT_img = np.zeros(shape=img.shape, dtype=np.uint8)
+#     # 핸드라벨링 컬러 > 리얼라벨링 컬러
+#     for lable_color in lable_color_list:
+#         GT_img[np.where((img == lable_color).all(axis=2))] = [255, 255, 255]
+#     # 이외에는 blob으로
+#     GT_img[np.where((GT_img != [255, 255, 255]).all(axis=2))] = blob_color
+#
+#
+#     # 3. Fill background color
+#     background_color = (0, 0, 0)
+#     rows, cols = GT_img.shape[:2]
+#     mask = np.zeros((rows + 2, cols + 2), np.uint8)
+#     retval, GT_img, mask, rect = cv2.floodFill(GT_img, mask, (0, 0), background_color)
+#
+#     # 4. blob color > Labeling color로 변환
+#     GT_img[np.where((GT_img == blob_color).all(axis=2))] = [255,255,255]
+#
+#     # 5. index값을 가진 마스크 이미지 생성
+#     label = np.random.randint(3, size=(rows, cols), dtype=np.uint8)
+#     label.fill(0)
+#     label[np.where((GT_img == [255, 255, 255]).all(axis=2))] = [1]
+#     png = Image.fromarray(label).convert('P')
+#     cmap = [[0, 0, 0], [255, 255, 255]]
+#     palette = [value for color in cmap for value in color]
+#     png.putpalette(palette)
+#     png.save('test.tif')
+
+def advanced_create_mask(image_full_path, dst_full_path):
+    # 1. Handmaking Image load
+    img = cv2.imread(image_full_path, cv2.IMREAD_COLOR)
+
+    # 2. GT img Instance 생성, lable color를 제외한 모든 pixcel을 blob color로 변환
+    lable_color_list = [[36, 28, 237], [0, 0, 255], [204, 72, 63]]
+    blob_color = [125, 125, 125]
+    GT_blue_img = np.zeros(shape=img.shape, dtype=np.uint8)
+    # 핸드라벨링 컬러 > 리얼라벨링 컬러
+    for lable_color in lable_color_list:
+        GT_blue_img[np.where((img == lable_color).all(axis=2))] = [30, 30, 30]
+    # cv2.imshow('test', GT_blue_img)
+    # cv2.waitKey(0)
+
+    # 이외에는 blob으로
+    GT_blue_img[np.where((GT_blue_img != [30, 30, 30]).all(axis=2))] = blob_color
+
+    # cv2.imshow('test', GT_blue_img)
+    # cv2.waitKey(0)
+
+    GT_red_img = np.zeros(shape=img.shape, dtype=np.uint8)
+    lable_color_list = [[36, 28, 237], [0, 0, 255]]
+    for lable_color in lable_color_list:
+        GT_red_img[np.where((img == lable_color).all(axis=2))] = [90, 90, 90]
+    GT_red_img[np.where((GT_red_img != [90, 90, 90]).all(axis=2))] = blob_color
+
+    # cv2.imshow('test', GT_red_img)
+    # cv2.waitKey(0)
+    # 3. Fill background color
+    background_color = (0, 0, 0)
+    rows, cols = GT_blue_img.shape[:2]
+    mask = np.zeros((rows + 2, cols + 2), np.uint8)
+    retval, GT_blue_img, mask, rect = cv2.floodFill(GT_blue_img, mask, (0, 0), background_color)
+    mask = np.zeros((rows + 2, cols + 2), np.uint8)
+    retval, GT_red_img, mask, rect = cv2.floodFill(GT_red_img, mask, (0, 0), background_color)
+
+    # cv2.imshow('test', GT_blue_img)
+    # cv2.waitKey(0)
+    # cv2.imshow('test', GT_red_img)
+    # cv2.waitKey(0)
+
+    # 4. blob color > Labeling color로 변환
+    GT_blue_img[np.where((GT_blue_img == blob_color).all(axis=2))] = [30, 30, 30]
+    GT_red_img[np.where((GT_red_img == blob_color).all(axis=2))] = [90, 90, 90]
+    GT_blue_img[np.where((GT_red_img == [90, 90, 90]).all(axis=2))] = [90, 90, 90]
+
+    # cv2.imshow('test', GT_blue_img)
+    # cv2.waitKey(0)
+    # cv2.imshow('test', GT_red_img)
+    # cv2.waitKey(0)
+    # cv2.imshow('test', GT_blue_img)
+    # cv2.waitKey(0)
+
+    a, b = np.unique(GT_blue_img ,return_counts=True)
+    if len(b) == 1:
+        return False
+
+    # 5. index값을 가진 마스크 이미지 생성
+    label = np.random.randint(3, size=(rows, cols), dtype=np.uint8)
+    label.fill(0)
+    label[np.where((GT_blue_img == [90, 90, 90]).all(axis=2))] = [1] # red
+    label[np.where((GT_blue_img == [30, 30, 30]).all(axis=2))] = [2] # blue
+    png = Image.fromarray(label).convert('P')
+    cmap = [[0, 0, 0], [255, 0, 0], [0, 0, 255]]
+    palette = [value for color in cmap for value in color]
+    png.putpalette(palette)
+    png.save(dst_full_path)
+    return True
 
 def rename(src_name, dst_name):
     os.rename(src_name, dst_name) # 둘 다 절대경로를 필요로 함
@@ -230,5 +349,20 @@ if __name__ == '__main__':
     #     tools.convertEtx('tiff', image_full_path[i], image_name_without_etx[i], 'D:\\Total_Dataset\\Dataset\\6. Unlabeld_dataset')
 
     # crop 이미지 이름 변경
-    dataset_rename()
+    # dir_path = 'D:\\Total_Dataset\\Dataset\\ori_temp'
+    # date_dir_list = ['211102_NG', '211102_OK', '211112_NG', '211112_OK', '2011028_NG', '2011028_OK']
+    # part_dir_list = ['sheath']
+    # dataset_rename(dir_path, date_dir_list, part_dir_list)
 
+    """
+    bell mouth 라벨링 이미지 생성
+    src = 3. handmaking Labeling Image
+    dst = 5. segmentation_dataset
+    train, val = 8:2
+    """
+    # 심선 바렐(라벨 이미지가 2개
+    src_base_path = 'D:\\Total_Dataset\\Dataset\\src_temp'
+    dst_base_path = 'D:\\Total_Dataset\\Dataset\\dst_temp'
+    date_dir_list = ['211102_NG', '211102_OK', '211112_NG', '211112_OK', '2011028_NG', '2011028_OK']
+    part_dir_list = ['sheath_barrel','bell_mouth','wire_barrel']
+    create_mask_dataset(src_base_path, dst_base_path, date_dir_list, part_dir_list)
