@@ -364,5 +364,5 @@ if __name__ == '__main__':
     src_base_path = 'D:\\Total_Dataset\\Dataset\\src_temp'
     dst_base_path = 'D:\\Total_Dataset\\Dataset\\dst_temp'
     date_dir_list = ['211102_NG', '211102_OK', '211112_NG', '211112_OK', '2011028_NG', '2011028_OK']
-    part_dir_list = ['sheath_barrel','bell_mouth','wire_barrel']
+    part_dir_list = ['sheath_barrel', 'sheath_barrel_front', 'bell_mouth','wire_barrel', 'wire_barrel_front']
     create_mask_dataset(src_base_path, dst_base_path, date_dir_list, part_dir_list)
