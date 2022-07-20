@@ -87,6 +87,22 @@ def createMask(image_path, image_name_without_etx, save_path):
     png.save(os.path.join(save_path, image_name_without_etx + '.tif'))
     print(np.unique(png))  # 라벨 값 확인
 
+def original_size_mask(image_path, image_name_without_etx, save_path):
+    img = cv2.imread(image_path, cv2.IMREAD_COLOR)
+    temp = np.zeros(shape=img.shape, dtype=np.uint8)
+    temp.fill(0)
+    bgr_color_list = [[36, 28, 237], [204, 72, 63], [164, 73, 163], [76, 177, 34], [39, 127, 255]]
+    rgb_color_list = [[237, 28, 36], [63, 72, 204], [163, 73, 164], [34, 177, 76], [255, 127, 39]]
+
+    for color, rgb_color in zip(bgr_color_list, rgb_color_list):
+        temp[np.where((img == color).all(axis=2))] = rgb_color
+
+    print(np.unique(temp))
+    print('original size convert color')
+
+    im = Image.fromarray(temp)
+    im.save(os.path.join('D:\\temp', image_name_without_etx + '.bmp'))
+
 def MaskPutPallet(image_path, image_name_without_etx, save_path): #까만 png 인덱스 이미지에 색칠하여 저장하는 함수
     img = cv2.imread(image_path, cv2.IMREAD_COLOR)
 
@@ -341,6 +357,12 @@ def rename(src_name, dst_name):
 #     tools.convertEtx('tiff', os.path.join(origin_path, image_name[i]), image_name_without_etx[i], 'D:\\Total_Dataset\\Dataset\\5. Segmentation_dataset\\Wire_front\\No_Augmentation\\tiff\\train')
 #     tools.convertEtx('png', os.path.join(origin_path, image_name[i]), image_name_without_etx[i], 'D:\\Total_Dataset\\Dataset\\5. Segmentation_dataset\\Wire_front\\No_Augmentation\\png\\train')
 
+def repaint(src_name):
+    # src_name 파일을 재색칠
+    src_color = [255, 127, 36] # 변경 전 색상
+    dst_color = [255, 127, 39] # 변경 후 색상
+
+    
 if __name__ == '__main__':
     # #test 파일 생성
     # image_full_path, image_name, image_name_without_etx = tools.image_path('D:\\Total_Dataset\\Dataset\\2. Crop Origin Image\\2011028_OK\\wire_barrel_front')
@@ -354,15 +376,25 @@ if __name__ == '__main__':
     # part_dir_list = ['sheath']
     # dataset_rename(dir_path, date_dir_list, part_dir_list)
 
+    # """
+    # bell mouth 라벨링 이미지 생성
+    # src = 3. handmaking Labeling Image
+    # dst = 5. segmentation_dataset
+    # train, val = 8:2
+    # """
+    # # 심선 바렐(라벨 이미지가 2개
+    # src_base_path = 'D:\\Total_Dataset\\Dataset\\src_temp'
+    # dst_base_path = 'D:\\Total_Dataset\\Dataset\\dst_temp'
+    # date_dir_list = ['211102_NG', '211102_OK', '211112_NG', '211112_OK', '2011028_NG', '2011028_OK']
+    # part_dir_list = ['sheath_barrel', 'sheath_barrel_front', 'bell_mouth','wire_barrel', 'wire_barrel_front']
+    # create_mask_dataset(src_base_path, dst_base_path, date_dir_list, part_dir_list)
+
     """
-    bell mouth 라벨링 이미지 생성
-    src = 3. handmaking Labeling Image
-    dst = 5. segmentation_dataset
-    train, val = 8:2
+    original size 라벨 이미지 생성
     """
-    # 심선 바렐(라벨 이미지가 2개
-    src_base_path = 'D:\\Total_Dataset\\Dataset\\src_temp'
-    dst_base_path = 'D:\\Total_Dataset\\Dataset\\dst_temp'
-    date_dir_list = ['211102_NG', '211102_OK', '211112_NG', '211112_OK', '2011028_NG', '2011028_OK']
-    part_dir_list = ['sheath_barrel', 'sheath_barrel_front', 'bell_mouth','wire_barrel', 'wire_barrel_front']
-    create_mask_dataset(src_base_path, dst_base_path, date_dir_list, part_dir_list)
+
+    src_base_path = 'D:\\src'
+    image_full_path_list, image_name_list, image_name_without_etx_list = tools.image_path(src_base_path)
+    dst_base_path = 'D:\\temp'
+    for image_full_path, image_name_without_etx in zip(image_full_path_list, image_name_without_etx_list):
+        original_size_mask(image_full_path, image_name_without_etx, dst_base_path)
